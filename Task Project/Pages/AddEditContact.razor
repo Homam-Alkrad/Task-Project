@@ -1,0 +1,68 @@
+﻿@page "/addeditcontact/{contactId:int?}"
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+@using Task_Project.Model
+@inject NavigationManager NavigationManager
+
+<h3>@(contactId == null ? "Add Contact" : "Edit Contact")</h3>
+
+<EditForm Model="@contact" OnValidSubmit="@SaveContact">
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <label for="firstName" class="form-label">First Name:</label>
+        <InputText id="firstName" class="form-control" @bind-Value="contact.FirstName" />
+        <ValidationMessage For="@(() => contact.FirstName)" />
+    </div>
+
+    <div class="mb-3">
+        <label for="lastName" class="form-label">Last Name:</label>
+        <InputText id="lastName" class="form-control" @bind-Value="contact.LastName" />
+        <ValidationMessage For="@(() => contact.LastName)" />
+    </div>
+
+    <div class="mb-3">
+        <label for="email" class="form-label">Email:</label>
+        <InputText id="email" class="form-control" @bind-Value="contact.Email" />
+        <ValidationMessage For="@(() => contact.Email)" />
+    </div>
+
+    <div class="mb-3">
+        <label for="phoneNumber" class="form-label">Phone Number:</label>
+        <InputText id="phoneNumber" class="form-control" @bind-Value="contact.PhoneNumber" />
+        <ValidationMessage For="@(() => contact.PhoneNumber)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int? contactId { get; set; }
+
+    private Contact contact = new Contact();
+
+    protected override void OnInitialized()
+    {
+        if (contactId.HasValue)
+        {
+            // Load existing contact if editing
+            contact = ContactData.Contacts.FirstOrDefault(c => c.Id == contactId);
+        }
+    }
+
+    private void SaveContact()
+    {
+        if (contactId.HasValue)
+        {
+            // Update existing contact
+            ContactService.UpdateContact(contact);
+        }
+        else
+        {
+            // Add new contact
+            ContactService.AddContact(contact);
+        }
+        NavigationManager.NavigateTo("/contacts");
+    }
+}

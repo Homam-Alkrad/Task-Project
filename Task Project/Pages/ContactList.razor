@@ -1,0 +1,116 @@
+﻿@page "/contacts"
+@using System.Linq
+@using Task_Project.Model
+
+<h3>Contact List</h3>
+
+<div class="row mt-3">
+    <div class="col-md-6">
+        <label for="sortField" class="form-label">Sort By:</label>
+        <select id="sortField" class="form-select" @bind="@sortField">
+            <option value="FirstName">First Name</option>
+            <option value="LastName">Last Name</option>
+            <option value="Email">Email</option>
+            <option value="PhoneNumber">Phone Number</option>
+        </select>
+    </div>
+    <div class="col-md-6">
+        <label for="sortOrder" class="form-label">Sort Order:</label>
+        <select id="sortOrder" class="form-select" @bind="@sortOrder">
+            <option value="Ascending">Ascending</option>
+            <option value="Descending">Descending</option>
+        </select>
+    </div>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                <button class="btn btn-link" @onclick='(() => SortContacts("FirstName"))'>First Name @GetSortIndicator("FirstName")</button>
+            </th>
+            <th>
+                <button class="btn btn-link" @onclick='(() => SortContacts("LastName"))'>Last Name @GetSortIndicator("LastName")</button>
+            </th>
+            <th>
+                <button class="btn btn-link" @onclick='(() => SortContacts("Email"))'>Email @GetSortIndicator("Email")</button>
+            </th>
+            <th>
+                <button class="btn btn-link" @onclick='(() => SortContacts("PhoneNumber"))'>Phone Number @GetSortIndicator("PhoneNumber")</button>
+            </th>
+            <th></th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var contact in sortedContacts)
+        {
+            <tr>
+                <td>@contact.FirstName</td>
+                <td>@contact.LastName</td>
+                <td>@contact.Email</td>
+                <td>@contact.PhoneNumber</td>
+                <td><a href="/addeditcontact/@contact.Id">Edit</a></td>
+                <td><button class="btn btn-link py-0 my-0" @onclick="(() => DeleteContact(contact.Id))">Delete</button></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Contact> sortedContacts = new List<Contact>();
+    private string sortField = "FirstName";
+    private string sortOrder = "Ascending";
+
+    protected override void OnInitialized()
+    {
+        SortContacts(sortField); 
+    }
+
+    private void SortContacts(string field)
+    {
+        if (sortField == field)
+        {
+            sortOrder = sortOrder == "Ascending" ? "Descending" : "Ascending";
+        }
+        else
+        {
+            sortField = field;
+            sortOrder = "Ascending";
+        }
+
+        sortedContacts = sortOrder == "Ascending" ?
+            ContactData.Contacts.OrderBy(GetSortExpression()).ToList() :
+            ContactData.Contacts.OrderByDescending(GetSortExpression()).ToList();
+    }
+
+    private Func<Contact, object> GetSortExpression()
+    {
+        switch (sortField)
+        {
+            case "LastName":
+                return c => c.LastName;
+            case "Email":
+                return c => c.Email;
+            case "PhoneNumber":
+                return c => c.PhoneNumber;
+            default:
+                return c => c.FirstName;
+        }
+    }
+
+    private string GetSortIndicator(string field)
+    {
+        if (sortField == field)
+        {
+            return sortOrder == "Ascending" ? "▲" : "▼";
+        }
+        return string.Empty;
+    }
+
+    private void DeleteContact(int id)
+    {
+        ContactService.DeleteContact(id);
+        SortContacts(sortField);
+    }
+}
